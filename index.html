@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vessel Operation Report</title>
+    <script>
+        function generateReport() {
+            // Get input values
+            const vesselName = document.getElementById("vesselName").value;
+            const cargoType = document.getElementById("cargoType").value;
+            const cargoQty = parseFloat(document.getElementById("cargoQty").value);
+            const vslComm = document.getElementById("vslComm").value;
+            const vslComp = document.getElementById("vslComp").value;
+            const gsus = document.getElementById("gsus").value;
+            const loaders = document.getElementById("loaders").value;
+
+            // Parse datetime
+            const start = new Date(vslComm);
+            const end = new Date(vslComp);
+            const diffMs = end - start;
+            const diffHrs = diffMs / (1000 * 60 * 60);
+            const diffDays = diffHrs / 24;
+
+            // Calculate metrics
+            const dischargeRate = cargoQty / diffHrs;
+            const grossProductivity = dischargeRate * 24;
+
+            // Format operation time
+            const hrs = Math.floor(diffHrs);
+            const mins = Math.floor((diffHrs - hrs) * 60);
+            let operationTime = `${hrs} hrs`;
+            if (mins > 0) {
+                operationTime += ` ${mins} min`;
+            }
+
+            // Format datetime display
+            const formatDate = dt => {
+                const d = new Date(dt);
+                const hh = d.getHours().toString().padStart(2, '0');
+                const mm = d.getMinutes().toString().padStart(2, '0');
+                const dd = d.getDate().toString().padStart(2, '0');
+                const mo = (d.getMonth() + 1).toString().padStart(2, '0');
+                const yyyy = d.getFullYear();
+                return `${hh}:${mm} hrs on ${dd}/${mo}/${yyyy}`;
+            };
+
+            // Generate report
+            const report = `*${vesselName}* (${cargoType}- ${cargoQty} MT)
+Vsl Comm: ${formatDate(vslComm)}
+Vsl Comp: ${formatDate(vslComp)}
+Dish rate: ${dischargeRate.toFixed(1)} Mt/hr
+Gross operation time in days:  ${diffDays.toFixed(2)} days
+Gross operation time in hrs: ${operationTime}
+Gross productivity : ${grossProductivity.toFixed(0)} Mt/day
+Number of GSU: ${gsus.padStart(2, '0')}
+Number of loaders: ${loaders.padStart(2, '0')}`;
+
+            // Display report
+            document.getElementById("report").innerText = report;
+
+            // WhatsApp link
+            const whatsappLink = "https://wa.me/?text=" + encodeURIComponent(report);
+            document.getElementById("whatsappBtn").href = whatsappLink;
+            document.getElementById("whatsappBtn").style.display = "inline-block";
+        }
+    </script>
+</head>
+<body>
+    <h2>Vessel Operation Report Generator</h2>
+    <form onsubmit="event.preventDefault(); generateReport();">
+        <label>Vessel Name:</label><br>
+        <input type="text" id="vesselName" required><br><br>
+
+        <label>Cargo Type:</label><br>
+        <input type="text" id="cargoType" required><br><br>
+
+        <label>Cargo Quantity (MT):</label><br>
+        <input type="number" id="cargoQty" required><br><br>
+
+        <label>Vessel Commencement Date & Time:</label><br>
+        <input type="datetime-local" id="vslComm" required><br><br>
+
+        <label>Vessel Completion Date & Time:</label><br>
+        <input type="datetime-local" id="vslComp" required><br><br>
+
+        <label>Number of GSUs:</label><br>
+        <input type="number" id="gsus" required><br><br>
+
+        <label>Number of Loaders:</label><br>
+        <input type="number" id="loaders" required><br><br>
+
+        <button type="submit">Generate Report</button>
+    </form>
+
+    <h3>Generated Report:</h3>
+    <pre id="report" style="background-color:#f0f0f0; padding:10px;"></pre>
+
+    #Send via WhatsApp</a>
+</body>
+</html>
