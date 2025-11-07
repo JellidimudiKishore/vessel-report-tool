@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bulk Cargo Discharge Summary</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h3 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:first-child {
+      background-color: #007bff;
+      color: white;
+      margin-right: 10px;
+    }
+    #whatsappShare button {
+      background-color: #25D366;
+      color: white;
+    }
+    #whatsappShare {
+      display: none;
+    }
+    pre {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin-top: 20px;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    .button-group {
+      margin-top: 15px;
+      display: flex;
+      justify-content: flex-start;
+    }
+  </style>
+</head>
+<body>
+  <h3>Bulk Cargo Discharge Summary</h3>
+  <label>Vessel Name:
+    <input type="text" id="vesselName">
+  </label>
+  <label>Cargo Type:
+    <input type="text" id="cargoType">
+  </label>
+  <label>Total Bulk Quantity (MT):
+    <input type="number" id="quantity">
+  </label>
+  <label>Work Commenced at Berth:
+    <input type="datetime-local" id="startTime">
+  </label>
+  <label>Work Completed at Berth:
+    <input type="datetime-local" id="endTime">
+  </label>
+  <label>Number of GSU's Used:
+    <input type="number" id="gsuCount">
+  </label>
+  <label>Number of Loaders Used:
+    <input type="number" id="loaderCount">
+  </label>
+
+  <div class="button-group">
+    <button onclick="generateReport()">Generate Report</button>
+    <a id="whatsappShare" target="_blank"><button>Share on WhatsApp</button></a>
+  </div>
+
+  <pre id="output"></pre>
+
+  <script>
+    let report = "";
+
+    function generateReport() {
+      const vessel = document.getElementById('vesselName').value;
+      const cargo = document.getElementById('cargoType').value;
+      const quantity = parseFloat(document.getElementById('quantity').value);
+      const start = new Date(document.getElementById('startTime').value);
+      const end = new Date(document.getElementById('endTime').value);
+      const gsu = document.getElementById('gsuCount').value;
+      const loaders = document.getElementById('loaderCount').value;
+
+      if (!vessel || !cargo || isNaN(quantity) || isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+        document.getElementById('output').textContent = "⚠️ Please fill all fields correctly and ensure end time is after start time.";
+        return;
+      }
+
+      const totalMs = end - start;
+      const totalHours = totalMs / (1000 * 60 * 60);
+      const totalDays = totalHours / 24;
+
+      const dischargeRate = quantity / totalHours;
+      const grossProductivity = dischargeRate * 24;
+
+      const hours = Math.floor(totalHours);
+      const minutes = Math.round((totalHours - hours) * 60);
+
+      const formattedStart = start.toLocaleString();
+      const formattedEnd = end.toLocaleString();
+
+      report = 
+`MV ${vessel} (${cargo}: ${quantity.toLocaleString()} MT)
+Vsl Comm: ${formattedStart}
+Vsl Comp: ${formattedEnd}
+Dish rate: ${dischargeRate.toFixed(2)} Mt/hr
+Gross operation time in days: ${totalDays.toFixed(2)} days
+Gross operation time in hrs: ${hours} hrs ${minutes} min
+Gross productivity: ${grossProductivity.toFixed(2)} Mt/day
+Number of GSU: ${gsu}
+Number of loaders: ${loaders}`;
+
+      document.getElementById('output').textContent = report;
+
+      // WhatsApp share link
+      document.getElementById('whatsappShare').href =
+        "https://wa.me/?text=" + encodeURIComponent(report);
+      document.getElementById('whatsappShare').style.display = "inline-block";
+    }
+  </script>
+</body>
+</html>
