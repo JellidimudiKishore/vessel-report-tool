@@ -1,114 +1,98 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Vessel Operation Report</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h2 {
-            color: #333;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        input {
-            width: 250px;
-            padding: 8px;
-            margin-bottom: 10px;
-        }
-        button, a {
-            padding: 10px 15px;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            margin-right: 10px;
-        }
-        #whatsappBtn {
-            background-color: #25D366;
-            color: white;
-            text-decoration: none;
-            display: none;
-        }
-        pre {
-            background-color: #f8f8f8;
-            padding: 15px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-    </style>
-    <script>
-        function generateReport() {
-            const vesselName = document.getElementById("vesselName").value;
-            const cargoType = document.getElementById("cargoType").value;
-            const cargoQty = parseFloat(document.getElementById("cargoQty").value);
-            const vslComm = document.getElementById("vslComm").value;
-            const vslComp = document.getElementById("vslComp").value;
-            const gsus = document.getElementById("gsus").value;
-            const loaders = document.getElementById("loaders").value;
-
-            const start = new Date(vslComm);
-            const end = new Date(vslComp);
-            const diffMs = end - start;
-            const diffHrs = diffMs / (1000 * 60 * 60);
-            const diffDays = diffHrs / 24;
-
-            const dischargeRate = cargoQty / diffHrs;
-            const grossProductivity = dischargeRate * 24;
-
-            const hrs = Math.floor(diffHrs);
-            const mins = Math.floor((diffHrs - hrs) * 60);
-            let operationTime = `${hrs} hrs`;
-            if (mins > 0) operationTime += ` ${mins} min`;
-
-            const formatDate = dt => {
-                const d = new Date(dt);
-                return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')} hrs on ${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
-            };
-
-            const report = `*${vesselName}* (${cargoType}- ${cargoQty} MT)
-Vsl Comm: ${formatDate(vslComm)}
-Vsl Comp: ${formatDate(vslComp)}
-Dish rate: ${dischargeRate.toFixed(1)} Mt/hr
-Gross operation time in days:  ${diffDays.toFixed(2)} days
-Gross operation time in hrs: ${operationTime}
-Gross productivity : ${grossProductivity.toFixed(0)} Mt/day
-Number of GSU: ${gsus.padStart(2,'0')}
-Number of loaders: ${loaders.padStart(2,'0')}`;
-
-            document.getElementById("report").innerText = report;
-
-            const whatsappLink = "https://wa.me/?text=" + encodeURIComponent(report);
-            const whatsappBtn = document.getElementById("whatsappBtn");
-            whatsappLink;
-            whatsappBtn.style.display = "inline-block";
-        }
-    </script>
+  <title>Bulk Cargo Discharge Summary</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    button {
+      margin-right: 10px;
+    }
+    #whatsappShare button {
+      background-color: #25D366;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <h2>Vessel Operation Report Generator</h2>
-    <form onsubmit="event.preventDefault(); generateReport();">
-        <input type="text" id="vesselName" placeholder="Vessel Name" required><br>
-        <input type="text" id="cargoType" placeholder="Cargo Type" required><br>
-        <input type="number" id="cargoQty" placeholder="Cargo Quantity (MT)" required><br>
-        <label>Vessel Commencement:</label><br>
-        <input type="datetime-local" id="vslComm" required><br>
-        <label>Vessel Completion:</label><br>
-        <input type="datetime-local" id="vslComp" required><br>
-        <input type="number" id="gsus" placeholder="Number of GSUs" required><br>
-        <input type="number" id="loaders" placeholder="Number of Loaders" required><br>
+  <h3>Bulk Cargo Discharge Summary</h3>
+  <label>Vessel Name: <input type="text" id="vesselName"></label><br><br>
+  <label>Cargo Type: <input type="text" id="cargoType"></label><br><br>
+  <label>Total Bulk Quantity (MT): <input type="number" id="quantity"></label><br><br>
+  <label>Work Commenced at Berth: <input type="datetime-local" id="startTime"></label><br><br>
+  <label>Work Completed at Berth: <input type="datetime-local" id="endTime"></label><br><br>
+  <label>Number of GSU's Used: <input type="number" id="gsuCount"></label><br><br>
+  <label>Number of Loaders Used: <input type="number" id="loaderCount"></label><br><br>
 
-        <!-- Buttons side by side -->
-        <button type="submit">Generate Report</button>
-        #Share on WhatsApp</a>
-    </form>
+  <!-- Buttons -->
+  <button onclick="generateReport()">Generate Report</button>
+  <a id="whatsappShare" target="_blank" style="display:none;">
+    <button>Share on WhatsApp</button>
+  </a>
 
-    <h3>Generated Report:</h3>
-    <pre id="report"></pre>
+  <pre id="output" style="margin-top:20px;"></pre>
+
+  <script>
+    let report = "";
+
+    function generateReport() {
+      const vessel = document.getElementById('vesselName').value;
+      const cargo = document.getElementById('cargoType').value;
+      const quantity = parseFloat(document.getElementById('quantity').value);
+      const start = new Date(document.getElementById('startTime').value);
+      const end = new Date(document.getElementById('endTime').value);
+      const gsu = document.getElementById('gsuCount').value;
+      const loaders = document.getElementById('loaderCount').value;
+
+      if (!vessel || !cargo || isNaN(quantity) || isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+        document.getElementById('output').textContent = "⚠️ Please fill all fields correctly and ensure end time is after start time.";
+        return;
+      }
+
+      const totalMs = end - start;
+      const totalHours = totalMs / (1000 * 60 * 60);
+      const totalDays = totalHours / 24;
+
+      const dischargeRate = quantity / totalHours;
+      const grossProductivity = dischargeRate * 24;
+
+      const hours = Math.floor(totalHours);
+      const minutes = Math.round((totalHours - hours) * 60);
+
+      const formattedStart = start.toLocaleString();
+      const formattedEnd = end.toLocaleString();
+
+      report = 
+`MV ${vessel} (${cargo}: ${quantity.toLocaleString()} MT)
+Vsl Comm: ${formattedStart}
+Vsl Comp: ${formattedEnd}
+Dish rate: ${dischargeRate.toFixed(2)} Mt/hr
+Gross operation time in days: ${totalDays.toFixed(2)} days
+Gross operation time in hrs: ${hours} hrs ${minutes} min
+Gross productivity: ${grossProductivity.toFixed(2)} Mt/day
+Number of GSU: ${gsu}
+Number of loaders: ${loaders}`;
+
+      document.getElementById('output').textContent = report;
+
+      // Show WhatsApp button with link
+      const whatsappLink = "https://wa.me/?text=" + encodeURIComponent(report);
+      const whatsappBtn = document.getElementById('whatsappShare');
+      whatsappBtn.href = whatsappLink;
+      whatsappBtn.style.display = "inline-block";
+    }
+  </script>
 </body>
 </html>
