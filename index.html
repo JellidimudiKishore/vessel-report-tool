@@ -44,8 +44,9 @@ Number of loaders: ${loaders.padStart(2,'0')}`;
             document.getElementById("report").innerText = report;
 
             const whatsappLink = "https://wa.me/?text=" + encodeURIComponent(report);
-            document.getElementById("whatsappBtn").href = whatsappLink;
-            document.getElementById("whatsappBtn").style.display = "inline-block";
+            const whatsappBtn = document.getElementById("whatsappBtn");
+            whatsappBtn.href = whatsappLink;
+            whatsappBtn.style.display = "inline-block";
         }
     </script>
 </head>
@@ -79,6 +80,7 @@ Number of loaders: ${loaders.padStart(2,'0')}`;
     <h3>Generated Report:</h3>
     <pre id="report" style="background-color:#f0f0f0; padding:10px;"></pre>
 
-    #Send via WhatsApp</a>
+    <!-- WhatsApp Button -->
+    <aend via WhatsApp</a>
 </body>
 </html>
