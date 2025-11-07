@@ -22,15 +22,21 @@
 <body>
   <h3>Bulk Cargo Discharge Summary</h3>
   <label>Vessel Name: <input type="text" id="vesselName"></label><br><br>
-  <label>Cargo Type: <input type="text" id="cargoType"></label><br><br>
+  <label>Cargo Type:
+    <select id="cargoType">
+      <option value="IOP">IOP</option>
+      <option value="Coal">Coal</option>
+      <option value="Flux">Flux</option>
+      <option value="Coke">Coke</option>
+    </select>
+  </label><br><br>
   <label>Total Bulk Quantity (MT): <input type="number" id="quantity"></label><br><br>
   <label>Work Commenced at Berth: <input type="datetime-local" id="startTime"></label><br><br>
   <label>Work Completed at Berth: <input type="datetime-local" id="endTime"></label><br><br>
   <label>Number of GSU's Used: <input type="number" id="gsuCount"></label><br><br>
   <label>Number of Loaders Used: <input type="number" id="loaderCount"></label><br><br>
-
-  <!-- Buttons -->
   <button onclick="generateReport()">Generate Report</button>
+  <button onclick="saveToSpreadsheet()">Save to Spreadsheet</button>
   <a id="whatsappShare" target="_blank"><button>Share on WhatsApp</button></a>
 
   <pre id="output" style="margin-top:20px;"></pre>
@@ -47,7 +53,7 @@
       const gsu = document.getElementById('gsuCount').value;
       const loaders = document.getElementById('loaderCount').value;
 
-      if (!vessel || !cargo || isNaN(quantity) || isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+      if (!vessel || isNaN(quantity) || isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
         document.getElementById('output').textContent = "⚠️ Please fill all fields correctly and ensure end time is after start time.";
         return;
       }
@@ -57,7 +63,7 @@
       const totalDays = totalHours / 24;
 
       const dischargeRate = quantity / totalHours;
-      const grossProductivity = dischargeRate * 24;
+      const grossProductivity = quantity / totalDays;
 
       const hours = Math.floor(totalHours);
       const minutes = Math.round((totalHours - hours) * 60);
@@ -66,11 +72,11 @@
       const formattedEnd = end.toLocaleString();
 
       report = 
-`MV ${vessel} (${cargo}: ${quantity.toLocaleString()} MT)
+`MV ${vessel} (DR PLT: ${quantity.toLocaleString()} mt)
 Vsl Comm: ${formattedStart}
 Vsl Comp: ${formattedEnd}
 Dish rate: ${dischargeRate.toFixed(2)} Mt/hr
-Gross operation time in days: ${totalDays.toFixed(2)} days
+Gross operation time in days: ${totalDays.toFixed(6)} days
 Gross operation time in hrs: ${hours} hrs ${minutes} min
 Gross productivity: ${grossProductivity.toFixed(2)} Mt/day
 Number of GSU: ${gsu}
@@ -78,10 +84,52 @@ Number of loaders: ${loaders}`;
 
       document.getElementById('output').textContent = report;
 
-      // WhatsApp share link
       document.getElementById('whatsappShare').href =
         "https://wa.me/?text=" + encodeURIComponent(report);
+    }
+
+    function saveToSpreadsheet() {
+      const vessel = document.getElementById('vesselName').value;
+      const cargo = document.getElementById('cargoType').value;
+      const quantity = parseFloat(document.getElementById('quantity').value);
+      const start = document.getElementById('startTime').value;
+      const end = document.getElementById('endTime').value;
+
+      const totalMs = new Date(end) - new Date(start);
+      const totalHours = totalMs / (1000 * 60 * 60);
+      const totalDays = totalHours / 24;
+
+      const dischargeRate = quantity / totalHours;
+      const grossProductivity = quantity / totalDays;
+
+      const hours = Math.floor(totalHours);
+      const minutes = Math.round((totalHours - hours) * 60);
+      const grossHours = `${hours} hrs ${minutes} min`;
+
+      const payload = {
+        vessel,
+        cargo,
+        quantity,
+        startTime: start,
+        endTime: end,
+        dischargeRate: dischargeRate.toFixed(2),
+        grossDays: totalDays.toFixed(6),
+        grossHours: grossHours,
+        grossProductivity: grossProductivity.toFixed(2)
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycby_-edXP1jfmdSAo_aJEwZQTLA9Cb6FwpHt6Dy7jH05vvBGU5UBV0NCbZRn6VR31nQx/exec", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.text())
+      .then(data => alert("✅ Report saved to spreadsheet."))
+      .catch(err => alert("❌ Failed to save report: " + err));
     }
   </script>
 </body>
 </html>
+
