@@ -17,13 +17,6 @@
     button {
       margin-right: 10px;
     }
-    #whatsappShare button {
-      background-color: #25D366;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -38,9 +31,7 @@
 
   <!-- Buttons -->
   <button onclick="generateReport()">Generate Report</button>
-  <a id="whatsappShare" target="_blank" style="display:none;">
-    <button>Share on WhatsApp</button>
-  </a>
+  <a id="whatsappShare" target="_blank"><button>Share on WhatsApp</button></a>
 
   <pre id="output" style="margin-top:20px;"></pre>
 
@@ -87,11 +78,9 @@ Number of loaders: ${loaders}`;
 
       document.getElementById('output').textContent = report;
 
-      // Show WhatsApp button with link
-      const whatsappLink = "https://wa.me/?text=" + encodeURIComponent(report);
-      const whatsappBtn = document.getElementById('whatsappShare');
-      whatsappBtn.href = whatsappLink;
-      whatsappBtn.style.display = "inline-block";
+      // WhatsApp share link
+      document.getElementById('whatsappShare').href =
+        "https://wa.me/?text=" + encodeURIComponent(report);
     }
   </script>
 </body>
